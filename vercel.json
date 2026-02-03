@@ -1,6 +1,11 @@
 {
   "version": 2,
+  "cleanUrls": true,
   "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index" }
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/servers", "destination": "/servers.html" },
+    { "source": "/setup", "destination": "/setup.html" },
+    { "source": "/dashboard", "destination": "/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
