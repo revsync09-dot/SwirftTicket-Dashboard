@@ -13,7 +13,12 @@ from .panels import render_settings_panel, render_open_panel
 from .discord_rest import DiscordRest
 
 BASE_DIR = Path(__file__).resolve().parent
-DASHBOARD_DIR = (BASE_DIR.parent / "dashboard").resolve()
+_candidates = [
+    (BASE_DIR.parent / "public").resolve(),
+    (BASE_DIR.parent / "dashboard").resolve(),
+    BASE_DIR.parent.resolve(),
+]
+DASHBOARD_DIR = next((p for p in _candidates if p.exists()), (BASE_DIR.parent / "dashboard").resolve())
 
 app = Flask(__name__, static_folder=str(DASHBOARD_DIR), static_url_path="")
 config = load_config()
