@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SwiftTicket | Dashboard</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body data-page="dashboard">
+    <div class="app">
+      <nav class="nav">
+        <div class="brand">
+          <div class="logo"><img src="/assets/logo.svg" alt="Logo" /></div>
+          <div>
+            <div>SwiftTicket</div>
+            <div style="color: var(--muted); font-size: 0.85rem;">Operations overview</div>
+          </div>
+        </div>
+        <div class="nav-links">
+          <a href="/login">Login</a>
+          <a href="/servers">Servers</a>
+          <a class="active" href="/dashboard">Dashboard</a>
+          <a href="/setup">Setup</a>
+        </div>
+      </nav>
+
+      <section class="hero">
+        <div class="hero-card">
+          <div class="badge">Live status</div>
+          <h1 style="margin-top: 12px;">Bot: <span data-bot-tag>SwiftTicket</span></h1>
+          <p>Track status across your selected guild and jump into configuration when you are ready.</p>
+          <div class="grid" style="margin-top: 16px;">
+            <div class="card">
+              <h3>Uptime</h3>
+              <p><span class="badge good" data-uptime>online</span></p>
+            </div>
+            <div class="card">
+              <h3>Latency</h3>
+              <p class="mono" data-latency>0 ms</p>
+            </div>
+            <div class="card">
+              <h3>Selected guild</h3>
+              <p class="mono" data-selected-guild>Not selected</p>
+            </div>
+          </div>
+          <div class="flex" style="margin-top: 16px;">
+            <a class="button" href="/setup">Open setup</a>
+            <a class="button secondary" data-invite style="display: none;" href="#">Invite bot</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <div class="badge">Feature map</div>
+          <div class="grid" style="margin-top: 16px;">
+            <div class="card">
+              <h3>Ticket flows</h3>
+              <p>Panels, categories, priority analysis, transcripts, and ticket linking.</p>
+            </div>
+            <div class="card">
+              <h3>Staff tooling</h3>
+              <p>Claim, close, reopen, and fast status changes with rich embeds.</p>
+            </div>
+            <div class="card">
+              <h3>Moderation automation</h3>
+              <p>Warnings, auto-timeout thresholds, and safety alerts on flagged words.</p>
+            </div>
+            <div class="card">
+              <h3>Analytics</h3>
+              <p>90-day activity charts and ticket summaries with /info command.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Command quick reference</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>/ticket setup</h3>
+            <p>Configure category, staff role, and timezone.</p>
+          </div>
+          <div class="card">
+            <h3>/ticket panel</h3>
+            <p>Post the settings panel for staff.</p>
+          </div>
+          <div class="card">
+            <h3>/ticket panelset</h3>
+            <p>Post the public panel for users.</p>
+          </div>
+          <div class="card">
+            <h3>/info</h3>
+            <p>See ticket analytics for any user.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer">Use Setup to save changes. Every action here syncs directly with your bot.</div>
+    </div>
+    <script src="/assets/app.js"></script>
+  </body>
+</html>
+
