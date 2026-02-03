@@ -7,8 +7,5 @@
     { "source": "/setup", "destination": "/setup.html" },
     { "source": "/dashboard", "destination": "/index.html" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "builds": [
-    { "src": "public/**", "use": "@vercel/static" }
   ]
 }
