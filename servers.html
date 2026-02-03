@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SwiftTicket | Servers</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body data-page="servers">
+    <div class="app">
+      <nav class="nav">
+        <div class="brand">
+          <div class="logo"><img src="/assets/logo.svg" alt="Logo" /></div>
+          <div>
+            <div>SwiftTicket</div>
+            <div style="color: var(--muted); font-size: 0.85rem;">Connected guilds</div>
+          </div>
+        </div>
+        <div class="nav-links">
+          <a href="/login">Login</a>
+          <a class="active" href="/servers">Servers</a>
+          <a href="/dashboard">Dashboard</a>
+          <a href="/setup">Setup</a>
+        </div>
+      </nav>
+
+      <section class="hero" style="margin-top: 24px;">
+        <div class="hero-card">
+          <div class="badge">Bot identity</div>
+          <h1 style="margin-top: 12px;"><span data-bot-tag>SwiftTicket</span></h1>
+          <p>Select the server you want to configure. If the bot is not installed, invite it first.</p>
+          <div class="notice" data-error></div>
+        </div>
+        <div class="hero-card">
+          <div class="section-title" style="margin-top: 0;">Guild list</div>
+          <div class="grid" data-guild-list></div>
+        </div>
+      </section>
+
+      <div class="footer">Tip: Select a server to continue into setup and dashboard controls.</div>
+    </div>
+    <script src="/assets/app.js"></script>
+  </body>
+</html>
+
