@@ -91,6 +91,9 @@ def overview_page():
 
 @app.route("/assets/<path:filename>")
 def assets(filename: str):
+    assets_dir = DASHBOARD_DIR / "assets"
+    if assets_dir.exists():
+        return send_from_directory(assets_dir, filename)
     return send_from_directory(DASHBOARD_DIR, filename)
 
 
