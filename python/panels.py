@@ -1,4 +1,4 @@
-from .components import action_row, container, select_menu, separator, text_display
+ï»¿from .components import action_row, container, select_menu, separator, text_display
 
 
 def render_settings_panel(settings: dict | None, categories: list[dict], page: int = 1):
@@ -19,7 +19,10 @@ def render_settings_panel(settings: dict | None, categories: list[dict], page: i
 
     if categories:
         list_text = "\n".join(
-            [f"- **{i+1}.** {c['name']}" + (f" — {c['description']}" if c.get("description") else "") for i, c in enumerate(categories)]
+            [
+                f"- **{i+1}.** {c['name']}" + (f" - {c['description']}" if c.get("description") else "")
+                for i, c in enumerate(categories)
+            ]
         )
     else:
         list_text = "- No categories yet"
@@ -30,7 +33,7 @@ def render_settings_panel(settings: dict | None, categories: list[dict], page: i
         f"- Auto priority: {'ON' if auto_priority else 'OFF'}\n"
         f"- Smart replies: {'ON' if smart else 'OFF'}\n"
         f"- AI suggestions: {'ON' if ai else 'OFF'}\n"
-        f"- Warn threshold: {warn_threshold} ? {warn_timeout}m timeout"
+        f"- Warn threshold: {warn_threshold} -> {warn_timeout}m timeout"
     )
 
     row1 = action_row([select_menu("ticket:slots:1", _range_options(1, 25, selected), "Select 1-25 categories")])

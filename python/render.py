@@ -65,13 +65,10 @@ def render_ticket_message(ticket: dict, creator_mention: str, timezone: str, mod
         components.extend([
             separator(),
             text_display(
-                "### Moderation"
-
+                "### Moderation\n"
                 f"- Warnings: {moderation['warnings']} | Mutes: {moderation['mutes']} | Bans: {moderation['bans']}"
             ),
         ])
-
-    ])
 
     if suggestions:
         components.extend([separator(), text_display("### Suggested Replies\n" + "\n".join([f"- {s}" for s in suggestions]))])
