@@ -1,5 +1,8 @@
 # SwiftTicket
 
+![Uploading image.png…]()
+
+
 # SwiftTicket
 - One of the best Ticketsbot of Discord Community- Be aware do not use this as your own BOT!!!
 - If you use it you will get in toruble cuz of using!
