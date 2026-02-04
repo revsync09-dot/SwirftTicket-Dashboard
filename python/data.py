@@ -65,6 +65,31 @@ class DataRepo:
             return res.data or []
         return await self._run(_)
 
+    async def list_ticket_times(self, guild_id: str, since_iso: str):
+        def _():
+            res = (
+                self.sb.table("tickets")
+                .select("created_at")
+                .eq("guild_id", guild_id)
+                .gte("created_at", since_iso)
+                .order("created_at")
+                .execute()
+            )
+            return res.data or []
+        return await self._run(_)
+
+    async def list_ticket_users(self, guild_id: str, since_iso: str):
+        def _():
+            res = (
+                self.sb.table("tickets")
+                .select("creator_id,claimed_by,closed_by,created_at")
+                .eq("guild_id", guild_id)
+                .gte("created_at", since_iso)
+                .execute()
+            )
+            return res.data or []
+        return await self._run(_)
+
     async def create_category(self, guild_id: str, name: str, description: str | None):
         def _():
             res = self.sb.table("ticket_categories").insert({

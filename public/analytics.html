@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SwiftTicket | Servers</title>
+    <title>SwiftTicket | Analytics</title>
     <link rel="stylesheet" href="/assets/styles.css" />
   </head>
-  <body data-page="servers">
+  <body data-page="analytics">
     <div class="shell">
       <aside class="sidebar">
         <div class="brand">
@@ -15,33 +15,42 @@
         </div>
         <nav class="side-nav">
           <a class="nav-item" href="/dashboard">Dashboard</a>
-          <a class="nav-item active" href="/servers">Tickets</a>
-          <a class="nav-item" href="/analytics">Analytics</a>
+          <a class="nav-item" href="/servers">Tickets</a>
+          <a class="nav-item active" href="/analytics">Analytics</a>
           <a class="nav-item" href="/users">Users</a>
         </nav>
         <div class="side-footer">
-          Bot: <span data-bot-tag>SwiftTicket</span>
+          Server: <span data-selected-guild>—</span>
         </div>
       </aside>
       <main class="content">
         <header class="topbar">
           <div>
-            <h1>Servers</h1>
-            <p>Select a guild to continue into the dashboard.</p>
+            <h1>Analytics</h1>
+            <p>Ticket volume for the last 30 days.</p>
           </div>
           <div class="top-actions">
             <button class="btn ghost" data-theme-toggle>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a1 1 0 0 1 1 1v1.06a6 6 0 1 1-2 0V5a1 1 0 0 1 1-1Zm0 5a4 4 0 1 0 4 4 4 4 0 0 0-4-4Z"/></svg>
               Theme
             </button>
-            <a class="btn" href="/login">Logout</a>
           </div>
         </header>
 
         <section class="panel">
-          <h3>Connected guilds</h3>
-          <div class="small" data-error></div>
-          <div class="list" data-guild-list></div>
+          <div class="tickets-header">
+            <div>
+              <h3>Ticket trend</h3>
+              <div class="small">Updated daily</div>
+            </div>
+            <button class="btn ghost" data-refresh-analytics>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.66-5.66L20 4v6h-6l2.2-2.2A6 6 0 1 0 18 12h2a8 8 0 0 1-16 0Z"/></svg>
+              Refresh
+            </button>
+          </div>
+          <div class="chart" style="margin-top: 12px;">
+            <canvas data-analytics-chart></canvas>
+          </div>
         </section>
       </main>
     </div>

@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 
 import requests
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from flask import Flask, redirect, request, send_from_directory, session, url_for, jsonify
 
 from .config import load_config
@@ -57,6 +57,25 @@ def can_manage_guild(guilds: list, guild_id: str) -> bool:
     return False
 
 
+def normalize_snowflake(value: str | None, field: str) -> str:
+    raw = (value or "").strip()
+    if not raw.isdigit():
+        raise ValueError(f"{field} must be a numeric Discord ID.")
+    if len(raw) < 17 or len(raw) > 20:
+        raise ValueError(f"{field} must be 17-20 digits long.")
+    return raw
+
+
+def normalize_int(value: int | str | None, field: str, minimum: int, maximum: int) -> int:
+    try:
+        num = int(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{field} must be a number.")
+    if num < minimum or num > maximum:
+        raise ValueError(f"{field} must be between {minimum} and {maximum}.")
+    return num
+
+
 def serve_dashboard(name: str):
     file_path = DASHBOARD_DIR / name
     if file_path.exists():
@@ -88,6 +107,13 @@ def setup_page():
 def overview_page():
     return serve_dashboard("index.html")
 
+@app.route("/users")
+def users_page():
+    return serve_dashboard("users.html")
+
+@app.route("/analytics")
+def analytics_page():
+    return serve_dashboard("analytics.html")
 
 @app.route("/assets/<path:filename>")
 def assets(filename: str):
@@ -192,6 +218,7 @@ def api_dashboard_data():
     metrics = {}
     recent = []
     owner_stats = {}
+    trend = {"labels": [], "values": []}
     if selected:
         today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
         total = asyncio_run(repo.count_tickets(selected))
@@ -222,7 +249,9 @@ def api_dashboard_data():
             "avgResolutionMin": avg_resolution,
             "avgResponseMin": avg_response,
         }
-        recent = asyncio_run(repo.list_recent_tickets(selected, limit=8))
+        recent = asyncio_run(repo.list_recent_tickets(selected, limit=25))
+        since = (datetime.now(timezone.utc) - timedelta(days=14)).replace(hour=0, minute=0, second=0, microsecond=0)
+        trend = _build_trend(asyncio_run(repo.list_ticket_times(selected, since.isoformat())), since, 14)
         is_owner = any(str(g.get("id")) == str(selected) and g.get("owner") for g in guilds or [])
         if is_owner and user and user.get("id"):
             owner_stats = asyncio_run(repo.user_ticket_stats(selected, user["id"])) or {}
@@ -239,7 +268,54 @@ def api_dashboard_data():
         "metrics": metrics,
         "recentTickets": recent,
         "ownerStats": owner_stats,
+        "trend": trend,
     })
+
+
+@app.route("/api/analytics")
+def api_analytics():
+    token, user, guilds = require_login()
+    if not token:
+        return jsonify({"error": "not_authenticated"}), 401
+    guild_id = request.args.get("guild_id") or session.get("selected_guild")
+    if not guild_id:
+        return jsonify({"error": "no_guild"}), 400
+    since = (datetime.now(timezone.utc) - timedelta(days=30)).replace(hour=0, minute=0, second=0, microsecond=0)
+    rows = asyncio_run(repo.list_ticket_times(guild_id, since.isoformat()))
+    trend = _build_trend(rows, since, 30)
+    return jsonify({"trend": trend})
+
+
+@app.route("/api/users")
+def api_users():
+    token, user, guilds = require_login()
+    if not token:
+        return jsonify({"error": "not_authenticated"}), 401
+    guild_id = request.args.get("guild_id") or session.get("selected_guild")
+    if not guild_id:
+        return jsonify({"error": "no_guild"}), 400
+    since = (datetime.now(timezone.utc) - timedelta(days=30)).replace(hour=0, minute=0, second=0, microsecond=0)
+    rows = asyncio_run(repo.list_ticket_users(guild_id, since.isoformat()))
+    stats = {}
+    for r in rows:
+        creator = r.get("creator_id")
+        claimed = r.get("claimed_by")
+        closed = r.get("closed_by")
+        if creator:
+            stats.setdefault(creator, {"created": 0, "claimed": 0, "closed": 0})
+            stats[creator]["created"] += 1
+        if claimed:
+            stats.setdefault(claimed, {"created": 0, "claimed": 0, "closed": 0})
+            stats[claimed]["claimed"] += 1
+        if closed:
+            stats.setdefault(closed, {"created": 0, "claimed": 0, "closed": 0})
+            stats[closed]["closed"] += 1
+    users = [
+        {"user_id": uid, **vals}
+        for uid, vals in stats.items()
+    ]
+    users.sort(key=lambda x: (x["created"] + x["claimed"] + x["closed"]), reverse=True)
+    return jsonify({"users": users[:50]})
 
 
 @app.route("/api/settings", methods=["GET", "POST"])
@@ -256,14 +332,23 @@ def api_settings():
         return jsonify(settings or {})
 
     data = request.json or {}
+    try:
+        ticket_parent = normalize_snowflake(data.get("ticket_parent_channel_id"), "Ticket category ID")
+        staff_role = normalize_snowflake(data.get("staff_role_id"), "Staff role ID")
+        timezone = (data.get("timezone") or "UTC").strip() or "UTC"
+        category_slots = normalize_int(data.get("category_slots") or 1, "Category slots", 1, 35)
+        warn_threshold = normalize_int(data.get("warn_threshold") or 3, "Warnings before timeout", 1, 50)
+        warn_timeout = normalize_int(data.get("warn_timeout_minutes") or 10, "Timeout minutes", 1, 10080)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
     payload = {
         "guild_id": guild_id,
-        "ticket_parent_channel_id": data.get("ticket_parent_channel_id"),
-        "staff_role_id": data.get("staff_role_id"),
-        "timezone": data.get("timezone") or "UTC",
-        "category_slots": int(data.get("category_slots") or 1),
-        "warn_threshold": int(data.get("warn_threshold") or 3),
-        "warn_timeout_minutes": int(data.get("warn_timeout_minutes") or 10),
+        "ticket_parent_channel_id": ticket_parent,
+        "staff_role_id": staff_role,
+        "timezone": timezone,
+        "category_slots": category_slots,
+        "warn_threshold": warn_threshold,
+        "warn_timeout_minutes": warn_timeout,
         "enable_smart_replies": bool(data.get("enable_smart_replies")),
         "enable_ai_suggestions": bool(data.get("enable_ai_suggestions")),
         "enable_auto_priority": bool(data.get("enable_auto_priority")),
@@ -287,8 +372,15 @@ def api_categories():
 
     if request.method == "POST":
         data = request.json or {}
-        name = data.get("name")
-        description = data.get("description")
+        name = (data.get("name") or "").strip()
+        description = (data.get("description") or "").strip() or None
+        if not name:
+            return jsonify({"error": "Category name is required."}), 400
+        settings = asyncio_run(repo.get_guild_settings(guild_id)) or {}
+        limit = int(settings.get("category_slots") or 1)
+        current = asyncio_run(repo.list_categories(guild_id)) or []
+        if len(current) >= limit:
+            return jsonify({"error": f"Category limit reached ({limit}). Increase slots first."}), 400
         created = asyncio_run(repo.create_category(guild_id, name, description))
         return jsonify(created or {})
 
@@ -307,9 +399,14 @@ def api_post_panel():
         return jsonify({"error": "not_authenticated"}), 401
     data = request.json or {}
     guild_id = data.get("guild_id")
-    channel_id = int(data.get("channel_id") or 0)
+    try:
+        channel_id = int(str(data.get("channel_id") or "").strip() or 0)
+    except ValueError:
+        channel_id = 0
     if not guild_id or not can_manage_guild(guilds, guild_id):
         return jsonify({"error": "not_authorized"}), 403
+    if channel_id <= 0:
+        return jsonify({"error": "Invalid channel ID."}), 400
     settings = asyncio_run(repo.get_guild_settings(guild_id))
     categories = asyncio_run(repo.list_categories(guild_id))
     payload = render_settings_panel(settings, categories, 1)
@@ -324,9 +421,14 @@ def api_post_panelset():
         return jsonify({"error": "not_authenticated"}), 401
     data = request.json or {}
     guild_id = data.get("guild_id")
-    channel_id = int(data.get("channel_id") or 0)
+    try:
+        channel_id = int(str(data.get("channel_id") or "").strip() or 0)
+    except ValueError:
+        channel_id = 0
     if not guild_id or not can_manage_guild(guilds, guild_id):
         return jsonify({"error": "not_authorized"}), 403
+    if channel_id <= 0:
+        return jsonify({"error": "Invalid channel ID."}), 400
     categories = asyncio_run(repo.list_categories(guild_id))
     payload = render_open_panel(categories)
     asyncio_run(rest.send_channel_message(channel_id, payload))
@@ -346,6 +448,27 @@ def asyncio_run(coro):
     if loop and loop.is_running():
         return asyncio.run_coroutine_threadsafe(coro, loop).result()
     return asyncio.run(coro)
+
+
+def _build_trend(rows: list[dict], start: datetime, days: int):
+    counts = {}
+    for r in rows:
+        ts = r.get("created_at")
+        if not ts:
+            continue
+        try:
+            dt = datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone(timezone.utc)
+        except Exception:
+            continue
+        key = dt.date().isoformat()
+        counts[key] = counts.get(key, 0) + 1
+    labels = []
+    values = []
+    for i in range(days):
+        d = (start + timedelta(days=i)).date().isoformat()
+        labels.append(d)
+        values.append(counts.get(d, 0))
+    return {"labels": labels, "values": values}
 
 
 def main():

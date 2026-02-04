@@ -16,8 +16,8 @@
         <nav class="side-nav">
           <a class="nav-item active" href="/dashboard">Dashboard</a>
           <a class="nav-item" href="/servers">Tickets</a>
-          <a class="nav-item" href="/setup">Analytics</a>
-          <a class="nav-item" href="/setup">Users</a>
+          <a class="nav-item" href="/analytics">Analytics</a>
+          <a class="nav-item" href="/users">Users</a>
         </nav>
         <div class="side-footer">
           Server: <span data-selected-guild>—</span>
@@ -73,12 +73,14 @@
         <section class="grid-two">
           <div class="panel">
             <h3>Ticket Trends</h3>
-            <div class="chart"></div>
+            <div class="chart">
+              <canvas data-trend-chart></canvas>
+            </div>
           </div>
           <div class="panel">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <h3>Recent Tickets</h3>
-              <a class="small" href="/setup">View all ?</a>
+              <a class="small" href="/servers">View all ?</a>
             </div>
             <div class="list" data-recent-list></div>
           </div>

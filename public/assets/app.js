@@ -34,6 +34,13 @@ const dash = (() => {
     const el = qs(sel);
     if (el) el.textContent = value;
   };
+  const setNotice = (sel, message, kind = 'info') => {
+    const el = qs(sel);
+    if (!el) return;
+    el.textContent = message;
+    el.classList.remove('success', 'error', 'info');
+    if (kind) el.classList.add(kind);
+  };
 
   const formatGuildStatus = (status) => {
     if (status === 'installed') return { label: 'Installed', cls: 'open' };
@@ -60,15 +67,46 @@ const dash = (() => {
     return `${Math.floor(diff / 86400)}d ago`;
   };
 
+
+  const drawLineChart = (canvas, labels, values) => {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const w = canvas.clientWidth || 600;
+    const h = canvas.clientHeight || 240;
+    canvas.width = w;
+    canvas.height = h;
+    ctx.clearRect(0, 0, w, h);
+    const max = Math.max(...values, 1);
+    const padding = 24;
+    const stepX = (w - padding * 2) / Math.max(values.length - 1, 1);
+    ctx.strokeStyle = 'rgba(88, 101, 242, 0.8)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    values.forEach((v, i) => {
+      const x = padding + i * stepX;
+      const y = h - padding - (v / max) * (h - padding * 2);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(88, 101, 242, 0.2)';
+    ctx.lineTo(w - padding, h - padding);
+    ctx.lineTo(padding, h - padding);
+    ctx.closePath();
+    ctx.fill();
+  };
+
   return {
     api,
     qs,
     qsa,
-    setText,
+    setText, setNotice,
     formatGuildStatus,
     loadDashboardData,
     handleAuthError,
     formatRelative,
+    drawLineChart,
   };
 })();
 
@@ -126,7 +164,7 @@ const initServers = async () => {
     });
   } catch (err) {
     if (err.status === 401) return dash.handleAuthError();
-    dash.setText('[data-error]', 'Could not load servers.');
+    dash.setNotice('[data-error]', 'Could not load servers.', 'error');
   }
 };
 
@@ -167,7 +205,7 @@ const initDashboard = async () => {
         dash.setText('[data-modal-user]', t.creator_id || '-');
         dash.setText('[data-modal-created]', new Date(t.created_at || '').toLocaleString());
         dash.setText('[data-modal-category]', t.category_name || 'General');
-        dash.setText('[data-modal-message]', t.query_text || '—');
+        dash.setText('[data-modal-message]', t.query_text || '');
         if (modal) modal.classList.add('open');
       });
       table.appendChild(tr);
@@ -198,6 +236,12 @@ const initDashboard = async () => {
       dash.setText('[data-selected-guild]', guildName);
 
       const metrics = data.metrics || {};
+      const trend = data.trend || { labels: [], values: [] };
+      const trendCanvas = dash.qs('[data-trend-chart]');
+      if (trendCanvas) {
+        dash.drawLineChart(trendCanvas, trend.labels || [], trend.values || []);
+      }
+
       dash.setText('[data-total]', metrics.totalTickets || 0);
       dash.setText('[data-open]', metrics.openTickets || 0);
       dash.setText('[data-closed]', metrics.closedToday || 0);
@@ -214,7 +258,7 @@ const initDashboard = async () => {
           item.innerHTML = `
             <div>
               <div style="font-weight: 600;">TK-${t.id}</div>
-              <div class="small">${t.category_name || 'General'} · ${dash.formatRelative(t.created_at)}</div>
+              <div class="small">${t.category_name || 'General'}  ${dash.formatRelative(t.created_at)}</div>
             </div>
             <span class="status ${status}">${status}</span>
           `;
@@ -282,7 +326,7 @@ const initSetup = async () => {
       const data = await dash.loadDashboardData();
       currentGuild = data.selectedGuild;
       if (!currentGuild) {
-        dash.setText('[data-setup-error]', 'Select a server first.');
+        dash.setNotice('[data-setup-error]', 'Select a server first.', 'info');
         return;
       }
       dash.setText('[data-guild-id]', currentGuild);
@@ -302,7 +346,7 @@ const initSetup = async () => {
       renderCategories(data.categories || []);
     } catch (err) {
       if (err.status === 401) return dash.handleAuthError();
-      dash.setText('[data-setup-error]', 'Unable to load settings.');
+      dash.setNotice('[data-setup-error]', 'Unable to load settings.', 'error');
     }
   };
 
@@ -324,9 +368,10 @@ const initSetup = async () => {
       };
       try {
         await dash.api('/api/settings', { method: 'POST', body: payload });
-        dash.setText('[data-setup-error]', 'Saved.');
+        await load();
+        dash.setNotice('[data-setup-error]', 'Saved.', 'success');
       } catch (err) {
-        dash.setText('[data-setup-error]', err?.data?.error || 'Save failed.');
+        dash.setNotice('[data-setup-error]', err?.data?.error || 'Save failed.', 'error');
       }
     });
   }
@@ -346,7 +391,7 @@ const initSetup = async () => {
         categoryForm.reset();
         await load();
       } catch (err) {
-        dash.setText('[data-setup-error]', err?.data?.error || 'Category create failed.');
+        dash.setNotice('[data-setup-error]', err?.data?.error || 'Category create failed.', 'error');
       }
     });
   }
@@ -360,7 +405,7 @@ const initSetup = async () => {
       if (!currentGuild) return;
       const channel = channelInput.value.trim();
       if (!/^\d+$/.test(channel)) {
-        dash.setText('[data-setup-error]', 'Please enter a numeric channel ID.');
+        dash.setNotice('[data-setup-error]', 'Please enter a numeric channel ID.', 'error');
         return;
       }
       try {
@@ -368,9 +413,9 @@ const initSetup = async () => {
           method: 'POST',
           body: { guild_id: currentGuild, channel_id: channel },
         });
-        dash.setText('[data-setup-error]', 'Panel posted.');
+        dash.setNotice('[data-setup-error]', 'Panel posted.', 'success');
       } catch (err) {
-        dash.setText('[data-setup-error]', err?.data?.error || 'Panel post failed.');
+        dash.setNotice('[data-setup-error]', err?.data?.error || 'Panel post failed.', 'error');
       }
     });
   }
@@ -380,7 +425,7 @@ const initSetup = async () => {
       if (!currentGuild) return;
       const channel = channelInput.value.trim();
       if (!/^\d+$/.test(channel)) {
-        dash.setText('[data-setup-error]', 'Please enter a numeric channel ID.');
+        dash.setNotice('[data-setup-error]', 'Please enter a numeric channel ID.', 'error');
         return;
       }
       try {
@@ -388,9 +433,9 @@ const initSetup = async () => {
           method: 'POST',
           body: { guild_id: currentGuild, channel_id: channel },
         });
-        dash.setText('[data-setup-error]', 'Public panel posted.');
+        dash.setNotice('[data-setup-error]', 'Public panel posted.', 'success');
       } catch (err) {
-        dash.setText('[data-setup-error]', err?.data?.error || 'Public panel failed.');
+        dash.setNotice('[data-setup-error]', err?.data?.error || 'Public panel failed.', 'error');
       }
     });
   }
@@ -404,3 +449,67 @@ if (page === 'login') initLogin();
 if (page === 'servers') initServers();
 if (page === 'dashboard') initDashboard();
 if (page === 'setup') initSetup();
+if (page === 'analytics') initAnalytics();
+if (page === 'users') initUsers();
+
+
+
+
+
+
+
+
+
+
+const initAnalytics = async () => {
+  const refresh = dash.qs('[data-refresh-analytics]');
+  const load = async () => {
+    try {
+      const data = await dash.loadDashboardData();
+      const guildName = (data.guilds || []).find((g) => g.id === data.selectedGuild)?.name || 'Select a server';
+      dash.setText('[data-selected-guild]', guildName);
+      const res = await dash.api('/api/analytics');
+      const canvas = dash.qs('[data-analytics-chart]');
+      if (canvas) {
+        dash.drawLineChart(canvas, res.trend?.labels || [], res.trend?.values || []);
+      }
+    } catch (err) {
+      if (err.status === 401) return dash.handleAuthError();
+    }
+  };
+  if (refresh) refresh.addEventListener('click', load);
+  await load();
+};
+
+const initUsers = async () => {
+  const refresh = dash.qs('[data-refresh-users]');
+  const load = async () => {
+    try {
+      const data = await dash.loadDashboardData();
+      const guildName = (data.guilds || []).find((g) => g.id === data.selectedGuild)?.name || 'Select a server';
+      dash.setText('[data-selected-guild]', guildName);
+      const res = await dash.api('/api/users');
+      const table = dash.qs('[data-users-table] tbody');
+      if (table) {
+        table.innerHTML = '';
+        (res.users || []).forEach((u) => {
+          const total = (u.created || 0) + (u.claimed || 0) + (u.closed || 0);
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="mono">${u.user_id}</td>
+            <td>${u.created || 0}</td>
+            <td>${u.claimed || 0}</td>
+            <td>${u.closed || 0}</td>
+            <td>${total}</td>
+          `;
+          table.appendChild(tr);
+        });
+      }
+      dash.setText('[data-last-updated]', 'just now');
+    } catch (err) {
+      if (err.status === 401) return dash.handleAuthError();
+    }
+  };
+  if (refresh) refresh.addEventListener('click', load);
+  await load();
+};

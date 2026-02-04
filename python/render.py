@@ -65,23 +65,12 @@ def render_ticket_message(ticket: dict, creator_mention: str, timezone: str, mod
         components.extend([
             separator(),
             text_display(
-                "### Moderation History\n"
-                f"- **Warnings:** {moderation['warnings']}\n"
-                f"- **Mutes:** {moderation['mutes']}\n"
-                f"- **Bans:** {moderation['bans']}\n"
-                f"- **Previous tickets:** {moderation['previous']}\n"
-                f"- **Last support:** {_fmt_relative(moderation['last_support'])}"
+                "### Moderation"
+
+                f"- Warnings: {moderation['warnings']} | Mutes: {moderation['mutes']} | Bans: {moderation['bans']}"
             ),
         ])
 
-    components.extend([
-        separator(),
-        text_display(
-            "### Response Tracking\n"
-            f"- **First response:** {ticket.get('first_response_ms') or '-'}\n"
-            f"- **Avg response:** {ticket.get('avg_response_ms') or '-'}\n"
-            f"- **Responses tracked:** {ticket.get('response_count') or 0}"
-        ),
     ])
 
     if suggestions:
