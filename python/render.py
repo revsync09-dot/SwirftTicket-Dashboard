@@ -39,9 +39,9 @@ def render_ticket_message(ticket: dict, creator_mention: str, timezone: str, mod
     ]
 
     components = [
-        text_display(f"## New Ticket {creator_mention} opened!"),
+        text_display(f"## Ticket Created {creator_mention}"),
         separator(),
-        _bullet_block("Ticket Overview", overview),
+        _bullet_block("Overview", overview),
         separator(),
         text_display(
             "### Priority\n"
@@ -51,7 +51,7 @@ def render_ticket_message(ticket: dict, creator_mention: str, timezone: str, mod
     ]
 
     if ticket.get("category_description"):
-        components.extend([separator(), text_display(f"### Category Details\n{ticket['category_description']}")])
+        components.extend([separator(), text_display(f"### Category\n{ticket['category_description']}")])
 
     components.extend([
         separator(),
@@ -92,19 +92,17 @@ def render_ticket_message(ticket: dict, creator_mention: str, timezone: str, mod
         text_display("### Linked Tickets\n" + ("\n".join([f"- #{_pad_id(i)}" for i in links]) if links else "- None")),
     ])
 
-    # Buttons
     buttons = []
     if ticket["status"] == "OPEN":
-        buttons.append(button(custom_id=f"ticket:claim:{ticket['id']}", emoji={"name": "🛠️"}, style=2))
+        buttons.append(button(custom_id=f"ticket:claim:{ticket['id']}", style=3, label="Claim"))
     elif ticket["status"] == "CLAIMED":
-        buttons.append(button(custom_id=f"ticket:close:{ticket['id']}", emoji={"name": "🔒"}, style=2))
-        buttons.append(button(custom_id=f"ticket:transcript:{ticket['id']}", emoji={"name": "📄"}, style=2))
+        buttons.append(button(custom_id=f"ticket:close:{ticket['id']}", style=4, label="Close"))
+        buttons.append(button(custom_id=f"ticket:transcript:{ticket['id']}", style=2, label="Transcript"))
     elif ticket["status"] == "CLOSED":
-        buttons.append(button(custom_id=f"ticket:transcript:{ticket['id']}", emoji={"name": "📄"}, style=2))
-        buttons.append(button(custom_id=f"ticket:reopen:{ticket['id']}", emoji={"name": "♻️"}, style=2))
+        buttons.append(button(custom_id=f"ticket:transcript:{ticket['id']}", style=2, label="Transcript"))
+        buttons.append(button(custom_id=f"ticket:reopen:{ticket['id']}", style=1, label="Reopen"))
 
-    buttons.append(button(custom_id=f"ticket:link:{ticket['id']}", style=2, label="Link"))
+    buttons.append(button(custom_id=f"ticket:link:{ticket['id']}", style=2, label="Link Ticket"))
     components.extend([separator(), action_row(buttons)])
 
     return {"flags": 1 << 15, "components": [container(components, STATUS_COLOR.get(ticket["status"], 0x7C5CFF))]}
-

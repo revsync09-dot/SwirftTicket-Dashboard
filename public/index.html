@@ -11,7 +11,7 @@
       <aside class="sidebar">
         <div class="brand">
           <div class="logo"><img src="/assets/logo.svg" alt="Logo" /></div>
-          <div><Swirft-Ticket></Swirft-Ticket></div>
+          <div>threadcord</div>
         </div>
         <nav class="side-nav">
           <a class="nav-item active" href="/dashboard">Dashboard</a>
@@ -20,7 +20,7 @@
           <a class="nav-item" href="/setup">Users</a>
         </nav>
         <div class="side-footer">
-          Server: <span data-selected-guild>ï¿½</span>
+          Server: <span data-selected-guild>—</span>
         </div>
       </aside>
       <main class="content">
@@ -31,8 +31,14 @@
           </div>
           <div class="top-actions">
             <span class="pill">Bot</span>
-            <button class="btn ghost" data-theme-toggle>Theme</button>
-            <a class="btn secondary" href="/login">Logout</a>
+            <button class="btn ghost" data-theme-toggle>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a1 1 0 0 1 1 1v1.06a6 6 0 1 1-2 0V5a1 1 0 0 1 1-1Zm0 5a4 4 0 1 0 4 4 4 4 0 0 0-4-4Z"/></svg>
+              Theme
+            </button>
+            <a class="btn secondary" href="/login">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 17l5-5-5-5v3H9v4h7v3ZM4 4h8a2 2 0 0 1 2 2v2h-2V6H4v12h8v-2h2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>
+              Logout
+            </a>
           </div>
         </header>
 
@@ -79,13 +85,22 @@
         </section>
 
         <section class="panel" style="margin-top: 18px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="tickets-header">
             <div>
               <h3>Tickets</h3>
               <div class="small">Last updated: <span data-last-updated>just now</span></div>
             </div>
-            <div class="top-actions">
-              <button class="btn ghost" data-refresh-table>Refresh now</button>
+            <div class="tickets-actions">
+              <div class="filter-tabs" data-filter-tabs>
+                <button class="tab active" data-filter="all">All</button>
+                <button class="tab" data-filter="open">Active</button>
+                <button class="tab" data-filter="claimed">Claimed</button>
+                <button class="tab" data-filter="closed">Closed</button>
+              </div>
+              <button class="btn ghost" data-refresh-table>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.66-5.66L20 4v6h-6l2.2-2.2A6 6 0 1 0 18 12h2a8 8 0 0 1-16 0Z"/></svg>
+                Refresh now
+              </button>
             </div>
           </div>
           <div style="margin-top: 12px;">
@@ -117,12 +132,12 @@
           <button class="btn ghost" data-modal-close>Close</button>
         </div>
         <div style="margin-top: 12px; display:grid; gap: 10px;">
-          <div class="small">User: <span data-modal-user>ï¿½</span></div>
-          <div class="small">Created: <span data-modal-created>ï¿½</span></div>
-          <div class="small">Category: <span data-modal-category>ï¿½</span></div>
+          <div class="small">User: <span data-modal-user>—</span></div>
+          <div class="small">Created: <span data-modal-created>—</span></div>
+          <div class="small">Category: <span data-modal-category>—</span></div>
           <div>
             <div style="font-weight:600; margin-bottom:6px;">Initial Message</div>
-            <div class="panel" style="padding: 12px;" data-modal-message>ï¿½</div>
+            <div class="panel" style="padding: 12px;" data-modal-message>—</div>
           </div>
         </div>
       </div>

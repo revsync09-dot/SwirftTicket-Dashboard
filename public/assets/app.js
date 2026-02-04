@@ -134,6 +134,9 @@ const initDashboard = async () => {
   const modal = dash.qs('[data-ticket-modal]');
   const closeBtn = dash.qs('[data-modal-close]');
   const refreshBtn = dash.qs('[data-refresh-table]');
+  const tabs = dash.qsa('[data-filter]');
+  let allTickets = [];
+  let currentFilter = 'all';
 
   const closeModal = () => {
     if (modal) modal.classList.remove('open');
@@ -164,12 +167,29 @@ const initDashboard = async () => {
         dash.setText('[data-modal-user]', t.creator_id || '-');
         dash.setText('[data-modal-created]', new Date(t.created_at || '').toLocaleString());
         dash.setText('[data-modal-category]', t.category_name || 'General');
-        dash.setText('[data-modal-message]', t.query_text || '');
+        dash.setText('[data-modal-message]', t.query_text || '—');
         if (modal) modal.classList.add('open');
       });
       table.appendChild(tr);
     });
   };
+
+  const applyFilter = () => {
+    let filtered = allTickets;
+    if (currentFilter !== 'all') {
+      filtered = allTickets.filter((t) => (t.status || '').toLowerCase() === currentFilter);
+    }
+    renderTable(filtered);
+  };
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      tabs.forEach((t) => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentFilter = tab.getAttribute('data-filter') || 'all';
+      applyFilter();
+    });
+  });
 
   const load = async () => {
     try {
@@ -194,7 +214,7 @@ const initDashboard = async () => {
           item.innerHTML = `
             <div>
               <div style="font-weight: 600;">TK-${t.id}</div>
-              <div class="small">${t.category_name || 'General'}  ${dash.formatRelative(t.created_at)}</div>
+              <div class="small">${t.category_name || 'General'} · ${dash.formatRelative(t.created_at)}</div>
             </div>
             <span class="status ${status}">${status}</span>
           `;
@@ -202,7 +222,8 @@ const initDashboard = async () => {
         });
       }
 
-      renderTable(data.recentTickets || []);
+      allTickets = data.recentTickets || [];
+      applyFilter();
       dash.setText('[data-last-updated]', 'just now');
     } catch (err) {
       if (err.status === 401) return dash.handleAuthError();

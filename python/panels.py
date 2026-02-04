@@ -9,17 +9,17 @@ def render_settings_panel(settings: dict | None, categories: list[dict], page: i
     ai = (settings or {}).get("enable_ai_suggestions", True)
     auto_priority = (settings or {}).get("enable_auto_priority", True)
 
-    header = text_display("## Ticket Category Slots" if page == 1 else "## Advanced Ticket Setup")
+    header = text_display("## Ticket Configuration" if page == 1 else "## Automation & Moderation")
     body = text_display(
-        "Choose how many ticket categories should be available in this server.\n"
-        "Select between **1 and 35** categories, then press **Add Category** to create names."
+        "Select the maximum number of categories available for tickets in this server."
+        "\nUse **Add Category** to create or edit category names."
         if page == 1
-        else "Configure advanced moderation and automation features.\nUse the dashboard for full controls."
+        else "Configure automated safety and intelligence features. Changes apply instantly."
     )
 
     if categories:
         list_text = "\n".join(
-            [f"- **{i+1}.** {c['name']}" + (f" - {c['description']}" if c.get("description") else "") for i, c in enumerate(categories)]
+            [f"- **{i+1}.** {c['name']}" + (f" — {c['description']}" if c.get("description") else "") for i, c in enumerate(categories)]
         )
     else:
         list_text = "- No categories yet"
@@ -27,14 +27,10 @@ def render_settings_panel(settings: dict | None, categories: list[dict], page: i
 
     advanced = text_display(
         "### Enabled Features\n"
-        f"- Moderation history in ticket UI\n"
         f"- Auto priority: {'ON' if auto_priority else 'OFF'}\n"
-        f"- Response tracking + staff ranking\n"
-        f"- Ticket reopen system\n"
-        f"- Ticket linking\n"
         f"- Smart replies: {'ON' if smart else 'OFF'}\n"
         f"- AI suggestions: {'ON' if ai else 'OFF'}\n"
-        f"- Warn threshold: {warn_threshold} -> {warn_timeout}m timeout"
+        f"- Warn threshold: {warn_threshold} ? {warn_timeout}m timeout"
     )
 
     row1 = action_row([select_menu("ticket:slots:1", _range_options(1, 25, selected), "Select 1-25 categories")])
@@ -73,7 +69,7 @@ def _range_options(start: int, end: int, selected: int):
 
 
 def render_open_panel(categories: list[dict]):
-    header = text_display("## Open a SwiftTicket")
+    header = text_display("## Open a Ticket")
     body = text_display("Select a category below to open a new ticket.")
     comps = [header, separator(), body, separator()]
     if not categories:
@@ -96,4 +92,3 @@ def _cat_options(categories: list[dict]):
             opt["description"] = c["description"][:50]
         opts.append(opt)
     return opts
-
