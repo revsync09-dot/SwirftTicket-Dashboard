@@ -7,58 +7,24 @@
     <link rel="stylesheet" href="/assets/styles.css" />
   </head>
   <body data-page="login">
-    <div class="app">
-      <nav class="nav">
+    <div class="auth-layout">
+      <section class="auth-hero">
         <div class="brand">
           <div class="logo"><img src="/assets/logo.svg" alt="Logo" /></div>
-          <div>
-            <div>SwiftTicket</div>
-            <div style="color: var(--muted); font-size: 0.85rem;">Discord Operations Hub</div>
-          </div>
+          <div>threadcord</div>
         </div>
-        <div class="nav-links">
-          <a class="active" href="/login">Login</a>
-          <a href="/servers">Servers</a>
-          <a href="/dashboard">Dashboard</a>
-          <a href="/setup">Setup</a>
-        </div>
-      </nav>
-
-      <section class="hero">
-        <div class="hero-card">
-          <h1>Control every ticket touchpoint.</h1>
-          <p>SwiftTicket gives your staff a fast, structured way to manage tickets, categories, and moderation automation. Sign in with Discord to connect your guilds and start configuring.</p>
-          <div class="flex">
-            <button class="button" data-login>Sign in with Discord</button>
-            <a class="button secondary" href="/dashboard">See dashboard</a>
-          </div>
-        </div>
-        <div class="hero-card">
-          <div class="badge">What you can do</div>
-          <div class="grid" style="margin-top: 16px;">
-            <div class="card">
-              <h3>Ticket orchestration</h3>
-              <p>Create panels, manage categories, and automate priority handling.</p>
-            </div>
-            <div class="card">
-              <h3>Moderation signals</h3>
-              <p>Configure warnings and auto-timeouts from one clean workspace.</p>
-            </div>
-            <div class="card">
-              <h3>AI & smart replies</h3>
-              <p>Toggle suggestions and smart reply features per guild.</p>
-            </div>
-            <div class="card">
-              <h3>Instant deployment</h3>
-              <p>Post panels directly into any channel once settings are saved.</p>
-            </div>
-          </div>
+        <h1>Welcome back.</h1>
+        <p class="small">Sign in to manage your Discord server and see your personal ticket stats.</p>
+      </section>
+      <section class="auth-card">
+        <div class="auth-panel">
+          <h2>Login</h2>
+          <p class="small">Connect with Discord to continue.</p>
+          <button class="btn" data-login>Sign in with Discord</button>
+          <button class="btn ghost" data-theme-toggle>Toggle theme</button>
         </div>
       </section>
-
-      <div class="footer">SwiftTicket Dashboard · Secure OAuth + guild-scoped controls.</div>
     </div>
     <script src="/assets/app.js"></script>
   </body>
 </html>
-

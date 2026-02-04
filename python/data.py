@@ -27,6 +27,44 @@ class DataRepo:
             return res.data or []
         return await self._run(_)
 
+    async def count_tickets(self, guild_id: str, status: str | None = None, since_iso: str | None = None, time_field: str = "created_at"):
+        def _():
+            q = self.sb.table("tickets").select("id", count="exact").eq("guild_id", guild_id)
+            if status:
+                q = q.eq("status", status)
+            if since_iso:
+                q = q.gte(time_field, since_iso)
+            res = q.execute()
+            return res.count or 0
+        return await self._run(_)
+
+    async def list_recent_tickets(self, guild_id: str, limit: int = 6):
+        def _():
+            res = (
+                self.sb.table("tickets")
+                .select("id,status,created_at,creator_id,category_name,priority,query_text")
+                .eq("guild_id", guild_id)
+                .order("created_at", desc=True)
+                .limit(limit)
+                .execute()
+            )
+            return res.data or []
+        return await self._run(_)
+
+    async def list_closed_tickets(self, guild_id: str, limit: int = 200):
+        def _():
+            res = (
+                self.sb.table("tickets")
+                .select("created_at,closed_at,avg_response_ms")
+                .eq("guild_id", guild_id)
+                .eq("status", "CLOSED")
+                .order("closed_at", desc=True)
+                .limit(limit)
+                .execute()
+            )
+            return res.data or []
+        return await self._run(_)
+
     async def create_category(self, guild_id: str, name: str, description: str | None):
         def _():
             res = self.sb.table("ticket_categories").insert({

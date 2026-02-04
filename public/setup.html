@@ -7,50 +7,67 @@
     <link rel="stylesheet" href="/assets/styles.css" />
   </head>
   <body data-page="setup">
-    <div class="app">
-      <nav class="nav">
+    <div class="shell">
+      <aside class="sidebar">
         <div class="brand">
           <div class="logo"><img src="/assets/logo.svg" alt="Logo" /></div>
+          <div>SwiftTicket</div>
+        </div>
+        <nav class="side-nav">
+          <a class="nav-item" href="/dashboard">Dashboard</a>
+          <a class="nav-item" href="/servers">Servers</a>
+          <a class="nav-item active" href="/setup">Setup</a>
+        </nav>
+        <div class="sidebar-footer">
+          Guild ID: <span class="mono" data-guild-id>Not selected</span>
+        </div>
+      </aside>
+      <main class="content">
+        <header class="topbar">
           <div>
-            <div>SwiftTicket</div>
-            <div style="color: var(--muted); font-size: 0.85rem;">Guild configuration</div>
+            <h1>Setup</h1>
+            <p class="small">Changes are applied to your bot instantly.</p>
           </div>
-        </div>
-        <div class="nav-links">
-          <a href="/login">Login</a>
-          <a href="/servers">Servers</a>
-          <a href="/dashboard">Dashboard</a>
-          <a class="active" href="/setup">Setup</a>
-        </div>
-      </nav>
+          <div class="top-actions">
+            <button class="btn ghost" data-theme-toggle>Theme</button>
+            <button class="btn secondary" data-refresh>Refresh</button>
+          </div>
+        </header>
 
-      <section class="hero" style="margin-top: 24px;">
-        <div class="hero-card">
-          <div class="badge">Active guild</div>
-          <h1 style="margin-top: 12px;">Guild ID: <span class="mono" data-guild-id>Not selected</span></h1>
-          <p class="notice" data-setup-error>Select a guild to begin. Changes apply instantly to the bot.</p>
-          <div class="flex">
-            <button class="button secondary" data-refresh>Refresh</button>
-            <a class="button" href="/servers">Choose server</a>
-          </div>
-        </div>
-        <div class="hero-card">
-          <div class="badge">Panel delivery</div>
-          <p>Paste a channel ID to post the staff panel or the public ticket panel.</p>
-          <div class="form">
-            <label for="panel-channel">Target channel ID</label>
-            <input class="input mono" id="panel-channel" data-panel-channel placeholder="123456789012345678" />
-            <div class="flex">
-              <button class="button" data-post-panel>Post staff panel</button>
-              <button class="button warning" data-post-panelset>Post public panel</button>
+        <section class="panel">
+          <div class="notice" data-setup-error>Select a server first.</div>
+        </section>
+
+        <section class="grid-two">
+          <div class="panel">
+            <h3>Panel delivery</h3>
+            <p class="small">Post the staff or public panel to a channel ID.</p>
+            <div class="form">
+              <label for="panel-channel">Target channel ID</label>
+              <input class="input mono" id="panel-channel" data-panel-channel placeholder="123456789012345678" />
+              <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button class="btn" data-post-panel>Post staff panel</button>
+                <button class="btn secondary" data-post-panelset>Post public panel</button>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+          <div class="panel">
+            <h3>Ticket categories</h3>
+            <div class="list" data-category-list></div>
+            <form class="form" data-category-form>
+              <label for="category-name">New category name</label>
+              <input class="input" id="category-name" name="category_name" placeholder="Billing, Support, Appeals" />
 
-      <section>
-        <h2 class="section-title">Core settings</h2>
-        <div class="card">
+              <label for="category-desc">Description</label>
+              <textarea id="category-desc" name="category_description" placeholder="Short description for the panel"></textarea>
+
+              <button class="btn" type="submit">Add category</button>
+            </form>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-top: 18px;">
+          <h3>Core settings</h3>
           <form class="form" data-settings-form>
             <label for="ticket-parent">Ticket category ID</label>
             <input class="input mono" id="ticket-parent" name="ticket_parent_channel_id" placeholder="Category channel ID" />
@@ -83,30 +100,11 @@
               <input type="checkbox" name="enable_auto_priority" />
             </div>
 
-            <button class="button" type="submit">Save settings</button>
+            <button class="btn" type="submit">Save settings</button>
           </form>
-        </div>
-      </section>
-
-      <section>
-        <h2 class="section-title">Ticket categories</h2>
-        <div class="grid" data-category-list></div>
-        <div class="card" style="margin-top: 18px;">
-          <form class="form" data-category-form>
-            <label for="category-name">New category name</label>
-            <input class="input" id="category-name" name="category_name" placeholder="Billing, Support, Appeals" />
-
-            <label for="category-desc">Description</label>
-            <textarea id="category-desc" name="category_description" placeholder="Short description for the panel"></textarea>
-
-            <button class="button" type="submit">Add category</button>
-          </form>
-        </div>
-      </section>
-
-      <div class="footer">Every save goes directly to Supabase and your bot's live configuration.</div>
+        </section>
+      </main>
     </div>
     <script src="/assets/app.js"></script>
   </body>
 </html>
-

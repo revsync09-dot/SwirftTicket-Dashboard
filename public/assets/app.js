@@ -36,8 +36,8 @@ const dash = (() => {
   };
 
   const formatGuildStatus = (status) => {
-    if (status === 'installed') return { label: 'Installed', cls: 'good' };
-    return { label: 'Not Installed', cls: 'warn' };
+    if (status === 'installed') return { label: 'Installed', cls: 'open' };
+    return { label: 'Not Installed', cls: 'claimed' };
   };
 
   const loadDashboardData = (guildId) => {
@@ -49,6 +49,17 @@ const dash = (() => {
     window.location.href = '/login';
   };
 
+  const formatRelative = (iso) => {
+    if (!iso) return '-';
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return '-';
+    const diff = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  };
+
   return {
     api,
     qs,
@@ -57,8 +68,25 @@ const dash = (() => {
     formatGuildStatus,
     loadDashboardData,
     handleAuthError,
+    formatRelative,
   };
 })();
+
+const initTheme = () => {
+  const root = document.documentElement;
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = stored || (prefersDark ? 'dark' : 'light');
+  root.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
+
+  dash.qsa('[data-theme-toggle]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+  });
+};
 
 const initLogin = () => {
   const button = dash.qs('[data-login]');
@@ -81,19 +109,17 @@ const initServers = async () => {
     (data.guilds || []).forEach((g) => {
       const status = dash.formatGuildStatus(g.status);
       const row = document.createElement('div');
-      row.className = 'card';
+      row.className = 'list-item';
       row.innerHTML = `
-        <div class="flex" style="justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-weight: 600;">${g.name}</div>
-            <div class="mono" style="color: var(--muted);">${g.id}</div>
-          </div>
-          <span class="badge ${status.cls}">${status.label}</span>
+        <div>
+          <div style="font-weight: 600;">${g.name}</div>
+          <div class="mono" style="color: var(--muted);">${g.id}</div>
         </div>
-        <div class="flex" style="margin-top: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span class="status ${status.cls}">${status.label}</span>
           ${g.status === 'installed'
-            ? `<a class="button" href="/select/${g.id}">Select</a>`
-            : `<a class="button warning" href="/invite/${g.id}">Invite Bot</a>`}
+            ? `<a class="btn" href="/select/${g.id}">Select</a>`
+            : `<a class="btn secondary" href="/invite/${g.id}">Invite</a>`}
         </div>
       `;
       container.appendChild(row);
@@ -105,24 +131,86 @@ const initServers = async () => {
 };
 
 const initDashboard = async () => {
-  try {
-    const data = await dash.loadDashboardData();
-    dash.setText('[data-bot-tag]', data.botTag || 'SwiftTicket');
-    dash.setText('[data-uptime]', data.uptime || 'offline');
-    dash.setText('[data-latency]', `${data.latencyMs || 0} ms`);
+  const modal = dash.qs('[data-ticket-modal]');
+  const closeBtn = dash.qs('[data-modal-close]');
+  const refreshBtn = dash.qs('[data-refresh-table]');
 
-    if (data.selectedGuild) {
-      dash.setText('[data-selected-guild]', data.selectedGuild);
-    }
+  const closeModal = () => {
+    if (modal) modal.classList.remove('open');
+  };
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (modal) modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
 
-    const invite = dash.qs('[data-invite]');
-    if (invite && data.inviteUrl) {
-      invite.href = data.inviteUrl;
-      invite.style.display = 'inline-flex';
+  const renderTable = (tickets) => {
+    const table = dash.qs('[data-ticket-table] tbody');
+    if (!table) return;
+    table.innerHTML = '';
+    tickets.forEach((t) => {
+      const status = (t.status || 'OPEN').toLowerCase();
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="status ${status}">${status}</span></td>
+        <td>TK-${t.id}</td>
+        <td class="mono">${t.creator_id || '-'}</td>
+        <td>${t.category_name || 'General'}</td>
+        <td>${dash.formatRelative(t.created_at)}</td>
+        <td><button class="btn ghost" data-view="${t.id}">View</button></td>
+      `;
+      tr.querySelector('[data-view]')?.addEventListener('click', () => {
+        dash.setText('[data-modal-title]', `TK-${t.id}`);
+        dash.setText('[data-modal-status]', status);
+        dash.setText('[data-modal-user]', t.creator_id || '-');
+        dash.setText('[data-modal-created]', new Date(t.created_at || '').toLocaleString());
+        dash.setText('[data-modal-category]', t.category_name || 'General');
+        dash.setText('[data-modal-message]', t.query_text || '—');
+        if (modal) modal.classList.add('open');
+      });
+      table.appendChild(tr);
+    });
+  };
+
+  const load = async () => {
+    try {
+      const data = await dash.loadDashboardData();
+      const guildName = (data.guilds || []).find((g) => g.id === data.selectedGuild)?.name || 'Select a server';
+      dash.setText('[data-selected-guild]', guildName);
+
+      const metrics = data.metrics || {};
+      dash.setText('[data-total]', metrics.totalTickets || 0);
+      dash.setText('[data-open]', metrics.openTickets || 0);
+      dash.setText('[data-closed]', metrics.closedToday || 0);
+      dash.setText('[data-avg-resolution]', `${metrics.avgResolutionMin || 0}m`);
+      dash.setText('[data-avg-response]', `${metrics.avgResponseMin || 0}m`);
+
+      const recent = dash.qs('[data-recent-list]');
+      if (recent) {
+        recent.innerHTML = '';
+        (data.recentTickets || []).slice(0, 5).forEach((t) => {
+          const status = t.status ? t.status.toLowerCase() : 'open';
+          const item = document.createElement('div');
+          item.className = 'list-item';
+          item.innerHTML = `
+            <div>
+              <div style="font-weight: 600;">TK-${t.id}</div>
+              <div class="small">${t.category_name || 'General'} · ${dash.formatRelative(t.created_at)}</div>
+            </div>
+            <span class="status ${status}">${status}</span>
+          `;
+          recent.appendChild(item);
+        });
+      }
+
+      renderTable(data.recentTickets || []);
+      dash.setText('[data-last-updated]', 'just now');
+    } catch (err) {
+      if (err.status === 401) return dash.handleAuthError();
     }
-  } catch (err) {
-    if (err.status === 401) return dash.handleAuthError();
-  }
+  };
+
+  if (refreshBtn) refreshBtn.addEventListener('click', load);
+  await load();
 };
 
 const initSetup = async () => {
@@ -144,16 +232,14 @@ const initSetup = async () => {
     }
     categories.forEach((cat) => {
       const item = document.createElement('div');
-      item.className = 'card';
+      item.className = 'list-item';
       item.innerHTML = `
-        <div style="display: flex; justify-content: space-between; gap: 12px;">
-          <div>
-            <div style="font-weight: 600;">${cat.name}</div>
-            <div style="color: var(--muted);">${cat.description || 'No description'}</div>
-            <div class="mono" style="color: var(--muted); margin-top: 6px;">ID ${cat.id}</div>
-          </div>
-          <button class="button ghost" data-delete="${cat.id}">Delete</button>
+        <div>
+          <div style="font-weight: 600;">${cat.name}</div>
+          <div class="small">${cat.description || 'No description'}</div>
+          <div class="mono small">ID ${cat.id}</div>
         </div>
+        <button class="btn ghost" data-delete="${cat.id}">Delete</button>
       `;
       categoryList.appendChild(item);
     });
@@ -275,6 +361,7 @@ const initSetup = async () => {
   await load();
 };
 
+initTheme();
 const page = document.body.getAttribute('data-page');
 if (page === 'login') initLogin();
 if (page === 'servers') initServers();
