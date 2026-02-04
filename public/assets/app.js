@@ -164,7 +164,7 @@ const initDashboard = async () => {
         dash.setText('[data-modal-user]', t.creator_id || '-');
         dash.setText('[data-modal-created]', new Date(t.created_at || '').toLocaleString());
         dash.setText('[data-modal-category]', t.category_name || 'General');
-        dash.setText('[data-modal-message]', t.query_text || '—');
+        dash.setText('[data-modal-message]', t.query_text || '');
         if (modal) modal.classList.add('open');
       });
       table.appendChild(tr);
@@ -194,7 +194,7 @@ const initDashboard = async () => {
           item.innerHTML = `
             <div>
               <div style="font-weight: 600;">TK-${t.id}</div>
-              <div class="small">${t.category_name || 'General'} · ${dash.formatRelative(t.created_at)}</div>
+              <div class="small">${t.category_name || 'General'}  ${dash.formatRelative(t.created_at)}</div>
             </div>
             <span class="status ${status}">${status}</span>
           `;
@@ -301,8 +301,12 @@ const initSetup = async () => {
         enable_ai_suggestions: form.enable_ai_suggestions.checked,
         enable_auto_priority: form.enable_auto_priority.checked,
       };
-      await dash.api('/api/settings', { method: 'POST', body: payload });
-      dash.setText('[data-setup-error]', 'Saved.');
+      try {
+        await dash.api('/api/settings', { method: 'POST', body: payload });
+        dash.setText('[data-setup-error]', 'Saved.');
+      } catch (err) {
+        dash.setText('[data-setup-error]', err?.data?.error || 'Save failed.');
+      }
     });
   }
 
@@ -313,12 +317,16 @@ const initSetup = async () => {
       const name = categoryForm.category_name.value.trim();
       const desc = categoryForm.category_description.value.trim();
       if (!name) return;
-      await dash.api('/api/categories', {
-        method: 'POST',
-        body: { guild_id: currentGuild, name, description: desc || null },
-      });
-      categoryForm.reset();
-      await load();
+      try {
+        await dash.api('/api/categories', {
+          method: 'POST',
+          body: { guild_id: currentGuild, name, description: desc || null },
+        });
+        categoryForm.reset();
+        await load();
+      } catch (err) {
+        dash.setText('[data-setup-error]', err?.data?.error || 'Category create failed.');
+      }
     });
   }
 
@@ -334,11 +342,15 @@ const initSetup = async () => {
         dash.setText('[data-setup-error]', 'Please enter a numeric channel ID.');
         return;
       }
-      await dash.api('/api/post-panel', {
-        method: 'POST',
-        body: { guild_id: currentGuild, channel_id: channel },
-      });
-      dash.setText('[data-setup-error]', 'Panel posted.');
+      try {
+        await dash.api('/api/post-panel', {
+          method: 'POST',
+          body: { guild_id: currentGuild, channel_id: channel },
+        });
+        dash.setText('[data-setup-error]', 'Panel posted.');
+      } catch (err) {
+        dash.setText('[data-setup-error]', err?.data?.error || 'Panel post failed.');
+      }
     });
   }
 
@@ -350,11 +362,15 @@ const initSetup = async () => {
         dash.setText('[data-setup-error]', 'Please enter a numeric channel ID.');
         return;
       }
-      await dash.api('/api/post-panelset', {
-        method: 'POST',
-        body: { guild_id: currentGuild, channel_id: channel },
-      });
-      dash.setText('[data-setup-error]', 'Public panel posted.');
+      try {
+        await dash.api('/api/post-panelset', {
+          method: 'POST',
+          body: { guild_id: currentGuild, channel_id: channel },
+        });
+        dash.setText('[data-setup-error]', 'Public panel posted.');
+      } catch (err) {
+        dash.setText('[data-setup-error]', err?.data?.error || 'Public panel failed.');
+      }
     });
   }
 

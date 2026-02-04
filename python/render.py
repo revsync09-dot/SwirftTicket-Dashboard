@@ -107,3 +107,4 @@ def render_ticket_message(ticket: dict, creator_mention: str, timezone: str, mod
     components.extend([separator(), action_row(buttons)])
 
     return {"flags": 1 << 15, "components": [container(components, STATUS_COLOR.get(ticket["status"], 0x7C5CFF))]}
+

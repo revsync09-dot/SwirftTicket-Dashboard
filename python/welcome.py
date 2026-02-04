@@ -13,6 +13,6 @@ def render_welcome(guild_name: str):
         "- Use **/info** to view user ticket analytics\n"
         "- Use **/mod log** to record warnings/mutes/bans"
     )
-    support = action_row([button(url="https://discord.gg/FRMPgGTM", style=5, emoji={"name": "💬"})])
+    support = action_row([button(url="https://discord.gg/FRMPgGTM", style=5, label="Support Server")])
     comps = [header, separator(), body, separator(), list_block, separator(), support]
     return {"flags": 1 << 15, "components": [container(comps)]}

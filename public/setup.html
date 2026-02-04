@@ -18,7 +18,7 @@
           <a class="nav-item" href="/servers">Servers</a>
           <a class="nav-item active" href="/setup">Setup</a>
         </nav>
-        <div class="sidebar-footer">
+        <div class="side-footer">
           Guild ID: <span class="mono" data-guild-id>Not selected</span>
         </div>
       </aside>
@@ -43,8 +43,10 @@
             <h3>Panel delivery</h3>
             <p class="small">Post the staff or public panel to a channel ID.</p>
             <div class="form">
-              <label for="panel-channel">Target channel ID</label>
-              <input class="input mono" id="panel-channel" data-panel-channel placeholder="123456789012345678" />
+              <div class="field">
+                <label for="panel-channel">Target channel ID</label>
+                <input class="input mono" id="panel-channel" data-panel-channel placeholder="123456789012345678" />
+              </div>
               <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <button class="btn" data-post-panel>Post staff panel</button>
                 <button class="btn secondary" data-post-panelset>Post public panel</button>
@@ -55,12 +57,14 @@
             <h3>Ticket categories</h3>
             <div class="list" data-category-list></div>
             <form class="form" data-category-form>
-              <label for="category-name">New category name</label>
-              <input class="input" id="category-name" name="category_name" placeholder="Billing, Support, Appeals" />
-
-              <label for="category-desc">Description</label>
-              <textarea id="category-desc" name="category_description" placeholder="Short description for the panel"></textarea>
-
+              <div class="field">
+                <label for="category-name">New category name</label>
+                <input class="input" id="category-name" name="category_name" placeholder="Billing, Support, Appeals" />
+              </div>
+              <div class="field">
+                <label for="category-desc">Description</label>
+                <textarea id="category-desc" name="category_description" placeholder="Short description for the panel"></textarea>
+              </div>
               <button class="btn" type="submit">Add category</button>
             </form>
           </div>
@@ -69,37 +73,50 @@
         <section class="panel" style="margin-top: 18px;">
           <h3>Core settings</h3>
           <form class="form" data-settings-form>
-            <label for="ticket-parent">Ticket category ID</label>
-            <input class="input mono" id="ticket-parent" name="ticket_parent_channel_id" placeholder="Category channel ID" />
-
-            <label for="staff-role">Staff role ID</label>
-            <input class="input mono" id="staff-role" name="staff_role_id" placeholder="Role ID" />
-
-            <label for="timezone">Timezone (IANA)</label>
-            <input class="input" id="timezone" name="timezone" placeholder="Europe/Berlin" />
-
-            <label for="category-slots">Category slots</label>
-            <input class="input" id="category-slots" name="category_slots" type="number" min="1" max="35" />
-
-            <label for="warn-threshold">Warnings before timeout</label>
-            <input class="input" id="warn-threshold" name="warn_threshold" type="number" min="1" max="20" />
-
-            <label for="warn-timeout">Timeout minutes</label>
-            <input class="input" id="warn-timeout" name="warn_timeout_minutes" type="number" min="1" max="720" />
-
-            <div class="toggle">
-              <span>Enable smart replies</span>
-              <input type="checkbox" name="enable_smart_replies" />
+            <div class="form-grid">
+              <div class="field">
+                <label for="ticket-parent">Ticket category ID</label>
+                <input class="input mono" id="ticket-parent" name="ticket_parent_channel_id" placeholder="Category channel ID" />
+              </div>
+              <div class="field">
+                <label for="staff-role">Staff role ID</label>
+                <input class="input mono" id="staff-role" name="staff_role_id" placeholder="Role ID" />
+              </div>
+              <div class="field">
+                <label for="timezone">Timezone (IANA)</label>
+                <input class="input" id="timezone" name="timezone" placeholder="Europe/Berlin" />
+              </div>
+              <div class="field">
+                <label for="category-slots">Category slots</label>
+                <input class="input" id="category-slots" name="category_slots" type="number" min="1" max="35" />
+              </div>
+              <div class="field">
+                <label for="warn-threshold">Warnings before timeout</label>
+                <input class="input" id="warn-threshold" name="warn_threshold" type="number" min="1" max="20" />
+              </div>
+              <div class="field">
+                <label for="warn-timeout">Timeout minutes</label>
+                <input class="input" id="warn-timeout" name="warn_timeout_minutes" type="number" min="1" max="720" />
+              </div>
+              <div class="field full">
+                <div class="toggle">
+                  <span>Enable smart replies</span>
+                  <input type="checkbox" name="enable_smart_replies" />
+                </div>
+              </div>
+              <div class="field full">
+                <div class="toggle">
+                  <span>Enable AI suggestions</span>
+                  <input type="checkbox" name="enable_ai_suggestions" />
+                </div>
+              </div>
+              <div class="field full">
+                <div class="toggle">
+                  <span>Enable auto priority</span>
+                  <input type="checkbox" name="enable_auto_priority" />
+                </div>
+              </div>
             </div>
-            <div class="toggle">
-              <span>Enable AI suggestions</span>
-              <input type="checkbox" name="enable_ai_suggestions" />
-            </div>
-            <div class="toggle">
-              <span>Enable auto priority</span>
-              <input type="checkbox" name="enable_auto_priority" />
-            </div>
-
             <button class="btn" type="submit">Save settings</button>
           </form>
         </section>

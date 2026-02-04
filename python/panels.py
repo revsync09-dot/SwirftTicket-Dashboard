@@ -40,19 +40,19 @@ def render_settings_panel(settings: dict | None, categories: list[dict], page: i
     row1 = action_row([select_menu("ticket:slots:1", _range_options(1, 25, selected), "Select 1-25 categories")])
     row2 = action_row([select_menu("ticket:slots:2", _range_options(26, 35, selected), "Select 26-35 categories")])
 
-    add_btn = action_row([{"type": 2, "custom_id": "ticket:category:add", "style": 2, "label": "Add"}])
+    add_btn = action_row([{"type": 2, "custom_id": "ticket:category:add", "style": 2, "label": "Add Category"}])
     settings_row = action_row(
         [
-            {"type": 2, "custom_id": "ticket:settings:warn", "style": 2, "label": "Warn"},
-            {"type": 2, "custom_id": "ticket:settings:timeout", "style": 2, "label": "Timeout"},
-            {"type": 2, "custom_id": "ticket:toggle:smart", "style": 2, "label": "Smart"},
-            {"type": 2, "custom_id": "ticket:toggle:ai", "style": 2, "label": "AI"},
-            {"type": 2, "custom_id": "ticket:toggle:priority", "style": 2, "label": "Priority"},
+            {"type": 2, "custom_id": "ticket:settings:warn", "style": 2, "label": "Warn Threshold"},
+            {"type": 2, "custom_id": "ticket:settings:timeout", "style": 2, "label": "Timeout Minutes"},
+            {"type": 2, "custom_id": "ticket:toggle:smart", "style": 2, "label": "Smart Replies"},
+            {"type": 2, "custom_id": "ticket:toggle:ai", "style": 2, "label": "AI Suggestions"},
+            {"type": 2, "custom_id": "ticket:toggle:priority", "style": 2, "label": "Auto Priority"},
         ]
     )
     nav = action_row(
         [
-            {"type": 2, "custom_id": "ticket:panel:page:1", "style": 2, "disabled": page == 1, "label": "Prev"},
+            {"type": 2, "custom_id": "ticket:panel:page:1", "style": 2, "disabled": page == 1, "label": "Previous"},
             {"type": 2, "custom_id": "ticket:panel:page:2", "style": 2, "disabled": page == 2, "label": "Next"},
         ]
     )
@@ -96,3 +96,4 @@ def _cat_options(categories: list[dict]):
             opt["description"] = c["description"][:50]
         opts.append(opt)
     return opts
+
