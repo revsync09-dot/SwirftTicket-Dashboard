@@ -4,6 +4,7 @@ from urllib.parse import urlencode
 
 import requests
 import asyncio
+from datetime import datetime, timezone
 from flask import Flask, redirect, request, send_from_directory, session, url_for, jsonify
 
 from .config import load_config
@@ -185,6 +186,44 @@ def api_dashboard_data():
     settings = asyncio_run(repo.get_guild_settings(selected)) if selected else None
     categories = asyncio_run(repo.list_categories(selected)) if selected else []
 
+    metrics = {}
+    recent = []
+    owner_stats = {}
+    if selected:
+        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+        total = asyncio_run(repo.count_tickets(selected))
+        open_count = asyncio_run(repo.count_tickets(selected, status="OPEN"))
+        closed_today = asyncio_run(repo.count_tickets(selected, status="CLOSED", since_iso=today, time_field="closed_at"))
+        closed_samples = asyncio_run(repo.list_closed_tickets(selected, limit=200))
+        resolution_minutes = []
+        response_minutes = []
+        for row in closed_samples:
+            created = row.get("created_at")
+            closed = row.get("closed_at")
+            if created and closed:
+                try:
+                    c_at = datetime.fromisoformat(created.replace("Z", "+00:00"))
+                    cl_at = datetime.fromisoformat(closed.replace("Z", "+00:00"))
+                    resolution_minutes.append(max(0, int((cl_at - c_at).total_seconds() / 60)))
+                except Exception:
+                    pass
+            avg_ms = row.get("avg_response_ms")
+            if avg_ms:
+                response_minutes.append(max(0, int(avg_ms / 60000)))
+        avg_resolution = int(sum(resolution_minutes) / len(resolution_minutes)) if resolution_minutes else 0
+        avg_response = int(sum(response_minutes) / len(response_minutes)) if response_minutes else 0
+        metrics = {
+            "totalTickets": total,
+            "openTickets": open_count,
+            "closedToday": closed_today,
+            "avgResolutionMin": avg_resolution,
+            "avgResponseMin": avg_response,
+        }
+        recent = asyncio_run(repo.list_recent_tickets(selected, limit=8))
+        is_owner = any(str(g.get("id")) == str(selected) and g.get("owner") for g in guilds or [])
+        if is_owner and user and user.get("id"):
+            owner_stats = asyncio_run(repo.user_ticket_stats(selected, user["id"])) or {}
+
     return jsonify({
         "botTag": bot_tag,
         "latencyMs": 0,
@@ -194,6 +233,9 @@ def api_dashboard_data():
         "settings": settings or {},
         "categories": categories or [],
         "inviteUrl": f"/invite/{selected}" if selected else None,
+        "metrics": metrics,
+        "recentTickets": recent,
+        "ownerStats": owner_stats,
     })
 
 
